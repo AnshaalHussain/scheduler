@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React from "react";
 import classNames from "classnames";
 import "components/InterviewerListItem.scss"
 
@@ -9,9 +9,8 @@ export default function InterviewerListItem(props) {
   });
 
 
-  const [interviewer, setInterviewer] = useState();
   return (
-    <li className={interviewersClass} onClick={() => props.setInterviewer(props.id)}>
+    <li className={interviewersClass} onClick={props.setInterviewer}>
       <img
         className="interviewers__item-image"
         src={props.avatar}
