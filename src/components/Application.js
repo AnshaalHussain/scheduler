@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import axios from 'axios';
 import "components/Application.scss";
 import DayList from "components/DayList";
 import Appointment from "./Appointment";
+import { getAppointmentsForDay, getInterview } from "helpers/selectors";
 
-const days = [
+/*const days = [
   {
     id: 1,
     name: "Monday",
@@ -21,6 +22,7 @@ const days = [
     spots: 0,
   },
 ];
+
 
 const appointments = [
   {
@@ -61,8 +63,64 @@ const appointments = [
   },
 ];
 
+*/
+
 export default function Application(props) {
-  const [day, setDay] = useState("Monday");
+  const [state, setState] = useState({
+    day: "Monday",
+    days: [],
+    appointments: {},
+    interviewers: {},
+  });
+
+
+  
+
+  
+
+
+
+  const setDay = day => setState({ ...state, day });
+  //const setDays = days => setState(prev => ({ ...prev, days }));
+
+  useEffect(() => {
+    const daysUrl = "http://localhost:8001/api/days";
+    const appointUrl = "http://localhost:8001/api/appointments";
+    const interviewUrl = "http://localhost:8001/api/interviewers";
+
+    Promise.all([
+      axios.get(daysUrl),
+      axios.get(appointUrl),
+      axios.get(interviewUrl),
+    ]).then((all) => {
+      const dayList = all[0].data
+  
+      const appointList = all[1].data
+
+      const interviewerList = all[2].data
+      
+      const newDayList = dayList.map( x => {
+        return x;
+      })
+
+      console.log("DAYLIST", dayList)
+      console.log("NEWDAYLIST", newDayList)
+    
+
+      setState(prev => ({...prev, days: newDayList, appointments: appointList, interviewers: interviewerList }));
+    
+    });
+
+  }, [])
+
+  //console.log("STATE", state)
+  const dailyAppointments = getAppointmentsForDay(state, state.day)
+
+  
+
+  
+  //console.log("DAILY", dailyAppointments)
+
   return (
     <main className="layout">
       <section className="sidebar">
@@ -75,7 +133,7 @@ export default function Application(props) {
             />
             <hr className="sidebar__separator sidebar--centered" />
             <nav className="sidebar__menu">
-              <DayList days={days} value={day} onChange={setDay} />
+              <DayList days={state.days} value={state.day} onChange={setDay} />
             </nav>
             <img
               className="sidebar__lhl sidebar--centered"
@@ -86,9 +144,18 @@ export default function Application(props) {
         }
       </section>
       <section className="schedule">
-        {appointments.map((x) => (
-          <Appointment keys={x.id} {...x}  />
-        ))}
+
+
+        {dailyAppointments.map((x) => {
+          const interview = getInterview(state, x.interview)
+          
+          
+          return (<Appointment  {...x} key={x.id} id={x.id} time={x.time} interview={interview} />
+          )
+
+})}
+
+
       </section>
     </main>
   );
